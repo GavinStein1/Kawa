@@ -44,16 +44,6 @@ func main() {
 
 }
 
-func addHelloWorld() {
-	sh := shell.NewShell("localhost:5001")
-	cid, err := sh.Add(strings.NewReader("hello world!"))
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s", err)
-		os.Exit(1)
-	}
-	fmt.Printf("added %s", cid)
-}
-
 func upload(filename string, sh *shell.Shell) {
 	file, err := os.ReadFile(filename)
 	if err != nil {
