@@ -43,6 +43,47 @@ func ConnectToStore() error {
 	// Connect to Kawa orbit store
 }
 
+
+
+// func CreateDBInstance() error {
+// 	// Create an instance of orbitdb
+// }
+
+// func ConnectToStore() error {
+// 	// Connect to Kawa orbit store
+// }
+
+// func createDB() (orbitdb.KeyValueStore) {
+// 	ctx, cancel := context.WithCancel(context.Background())
+// 	defer cancel()
+
+// 	c, err := client.NewURLApiWithClient("localhost:5001", &http.Client{})
+// 	if err != nil {
+// 		fmt.Fprintf(os.Stderr, "error: %s", err)
+// 		os.Exit(1)
+// 	}
+
+// 	db, err := orbitdb.NewOrbitDB(ctx, c, &orbitdb.NewOrbitDBOptions{})
+// 	if err != nil {
+// 		fmt.Fprintf(os.Stderr, "error: %s", err)
+// 		os.Exit(1)
+// 	}
+	
+// 	dbStore, err := db.Create(ctx, "test", "keyvalue", &orbitdb.CreateDBOptions{})
+// 	if err != nil {
+// 		fmt.Fprintf(os.Stderr, "error: %s", err)
+// 		os.Exit(1)
+// 	}
+
+// 	KvStore, err := db.KeyValue(ctx, dbStore.Address().String(), &orbitdb.CreateDBOptions{})
+// 	if err != nil {
+// 		fmt.Fprintf(os.Stderr, "error: %s", err)
+// 		os.Exit(1)
+// 	}
+
+// 	return KvStore
+// }
+
 func connectDB(url string, client *ipfsClient.HttpApi) (orbitdb.KeyValueStore) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
