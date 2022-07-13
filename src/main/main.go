@@ -4,70 +4,66 @@ package main
 
 import (
 	"fmt"
-	"strings"
-	"os"
-	"bufio"
+	"net/http"
+	"context"
 
-	shell "github.com/ipfs/go-ipfs-api"
+	ipfsClient "github.com/ipfs/go-ipfs-http-client"
+	orbitdb "berty.tech/go-orbit-db"
 )
+
+type SongDocument struct {
+	title string
+	artist string
+	album string
+	cid string
+}
+
+func CreateSongDocument(title string, artist string, album string, cid string) *SongDocument {
+	songDoc := SongDocument{title, artist, album, cid}
+	return &songDoc
+}
+
+func CreateIPFSNode() (*ipfsClient.HttpApi, error) {
+	// Create/connect to an IPFS node
+	// TODO: Start a ipfs node in a seperate process: (ipfs daemon --enable-pubsub-experiment)
+	client, err := ipfsClient.NewURLApiWithClient("localhost:5001", &http.Client{}) // uses client package
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
+
+}
+
+func CreateDBInstance(ctx context.Context, client *ipfsClient.HttpApi) (orbitdb.OrbitDB, error) {
+	// Create an instance of orbitdb
+	db, err :=	orbitdb.NewOrbitDB(ctx, client, nil)
+	if err != nil {
+		fmt.Printf("Failed to create orbitdb instance: %s\n", err)
+		return nil, err
+	}
+	fmt.Printf("%T\n", db)
+
+	return db, nil
+}
+
+// func ConnectToStore() error {
+// 	// Connect to Kawa orbit store
+// }
 
 func main() {
 	fmt.Println("Starting Kawa v0.1")
-	sh := shell.NewShell("localhost:5001")
-	reader := bufio.NewReader(os.Stdin)
-	for {
-		fmt.Print("Enter command (type help for more info): ")
-		text, _ := reader.ReadString('\n')
-		switch strings.TrimSpace(text) {
-		case "help":
-			fmt.Println("enter \"upload\" if you wish to upload a file to IPFS.")
-			fmt.Println("enter \"retrieve\" if you wish to retrieve a file from IPFS. Have the CID ready.")
-			fmt.Println("use quit or exit to finish")
-		case "upload":
-			fmt.Print("Enter filename: ")
-			filename, _ := reader.ReadString('\n')
-			filename = strings.TrimSpace(filename)
-			upload(filename, sh)
-		case "retrieve":
-			fmt.Print("Enter CID: ")
-			cid, _ := reader.ReadString('\n')
-			cid = strings.TrimSpace(cid)
-			retrieve(cid, sh)
-		case "exit":
-			os.Exit(1)
-		case "quit":
-			os.Exit(1)
-		}
-		
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Step 1: connect to IPFS
+	client, err := CreateIPFSNode()
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
-	// upload("./go.mp3")
+
+	db, err := CreateDBInstance(ctx, client)
+	fmt.Println(db)
 
 }
-
-func upload(filename string, sh *shell.Shell) {
-	file, err := os.ReadFile(filename)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s", err)
-		os.Exit(1)
-	}
-	
-	cid, err := sh.Add(strings.NewReader(string(file)))
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s", err)
-		os.Exit(1)
-	}
-	fmt.Printf("added %s \n", cid)
-}
-
-func retrieve(cid string, sh *shell.Shell) {
-	wd, _ := os.Getwd()
-	err := sh.Get(cid, wd)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s", err)
-		os.Exit(1)
-	}
-	fmt.Println("file saved to working directory")
-} 
-
-
- 
